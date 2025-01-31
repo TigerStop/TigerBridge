@@ -211,6 +211,16 @@ class TSPro:
         prefix = TSPro.MESSAGE_REQUEST_PREFIXES.HOME
         self.__send_formatted_message(prefix)
 
+    def request_setting(self, setting_name: str):
+        """
+        Request a setting from the TigerStop.
+        The sent message string is formatted like so: "get_setting|{setting_name}\n"
+        """
+        
+        prefix = TSPro.MESSAGE_REQUEST_PREFIXES.GET_SETTING
+        self.__send_formatted_message(prefix, setting_name)
+        
+
     def connect(self, ip_address: str) -> bool:
         """
         Attempt to create a TCP socket connection to the provided ip ip_address

@@ -19,12 +19,16 @@ def tool_down_handler():
 def tool_up_handler():
     print("tool UP")
 
+def get_setting_handler(*arg: tuple[str]):
+    print("received setting:", arg)
+
 def print_help():
     print("""
 Here's a list of valid commands:
     - move_to {position}
     - stop
     - get_position
+    - get_setting
     - home
     - calibrate {position}
     """)
@@ -59,6 +63,9 @@ def parse_command(tsp: TSPro, command: str):
         except ValueError:
             print_help()
             return
+    elif command_id == "get_setting":
+        setting_name = segments[1]
+        tsp.request_setting(setting_name)
     else:
         print_help()
         return
@@ -81,8 +88,8 @@ def main():
     tsp.set_event_hook(TSPro.EVENT_CODES.MOVE_FINISHED, move_finished_handler)
     tsp.set_event_hook(TSPro.EVENT_CODES.RECEIVED_POSITION, received_position_handler)
     tsp.set_event_hook(TSPro.EVENT_CODES.ERROR, error_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_DISENGAGED, tool_down_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_ENGAGED, tool_up_handler)
+    tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_DISENGAGED, tool_up_handler)
+    tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_ENGAGED, tool_down_handler)
 
     while True:
         parse_command(tsp, input("Enter a command: "))
