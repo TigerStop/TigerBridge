@@ -1,6 +1,8 @@
 from tiger_bridge import TSPro
 
 import signal
+import sys
+import os
 
 def move_finished_handler():
     print("\nmove finished!")
@@ -11,7 +13,7 @@ def received_position_handler(*arg: tuple[str]):
 
 def error_handler(*arg: tuple[str]):
     error_code = int(arg[0])
-    print(f"received an error {error_code}")
+    print(f"received an error {TSPro.ERROR_CODES(error_code).name}")
 
 def tool_down_handler():
     print("tool down")
@@ -22,6 +24,19 @@ def tool_up_handler():
 def get_setting_handler(*arg: tuple[str]):
     print("received setting:", arg)
 
+def edge_detect_sensor_activated_handler():
+    print("edge detect sensor activated")
+
+def edge_detect_sensor_deactivated_handler():
+    print("edge detect sensor deactivated")
+
+def defect_sensor_activated_handler():
+    print("defect sensor activated")
+
+def disconnection_handler():
+    print("socket connection lost. exiting...")
+    os._exit(1)
+
 def print_help():
     print("""
 Here's a list of valid commands:
@@ -31,6 +46,7 @@ Here's a list of valid commands:
     - get_setting
     - home
     - calibrate {position}
+    - cycle_tool
     """)
 
 def parse_command(tsp: TSPro, command: str):
@@ -66,6 +82,8 @@ def parse_command(tsp: TSPro, command: str):
     elif command_id == "get_setting":
         setting_name = segments[1]
         tsp.request_setting(setting_name)
+    elif command_id == "cycle_tool":
+        tsp.request_cycle_tool()
     else:
         print_help()
         return
@@ -74,13 +92,19 @@ def parse_command(tsp: TSPro, command: str):
 def main():
     print("Welcome to the TigerBridge command-line interface example. Press Ctrl+C at any point to exit.")
     tsp = TSPro()
+    ip = ""
 
-    while True:
+    if len(sys.argv) >= 2:
+        ip = sys.argv[1] 
+    else:
         ip = input("Enter a TigerStop Pro's IP address: ")
+        
+    while True:    
         result = tsp.connect(ip)
 
         if not result:
             print("failed to connect")
+            ip = input("Enter a TigerStop Pro's IP address: ")
             continue
         else:
             break
@@ -90,6 +114,10 @@ def main():
     tsp.set_event_hook(TSPro.EVENT_CODES.ERROR, error_handler)
     tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_DISENGAGED, tool_up_handler)
     tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_ENGAGED, tool_down_handler)
+    tsp.set_event_hook(TSPro.EVENT_CODES.EDGE_DETECT_SENSOR_ACTIVATED, edge_detect_sensor_activated_handler)
+    tsp.set_event_hook(TSPro.EVENT_CODES.EDGE_DETECT_SENSOR_DEACTIVATED, edge_detect_sensor_deactivated_handler)
+    tsp.set_event_hook(TSPro.EVENT_CODES.DEFECT_SENSOR_ACTIVATED, defect_sensor_activated_handler)
+    tsp.set_event_hook(TSPro.EVENT_CODES.DISCONNECTED, disconnection_handler)
 
     while True:
         parse_command(tsp, input("Enter a command: "))

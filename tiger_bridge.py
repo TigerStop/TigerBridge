@@ -16,35 +16,48 @@ class TSPro:
         """
         An enum of integer codes to identify different types of messages.
         """
-        MOVE_FINISHED     = 0
-        RECEIVED_SETTING  = 1
-        RECEIVED_POSITION = 2
-        ERROR             = 3
-        TOOL_ENGAGED      = 4
-        TOOL_DISENGAGED   = 5
+        DISCONNECTED                    = -1
+        MOVE_FINISHED                   = 0
+        RECEIVED_SETTING                = 1
+        RECEIVED_POSITION               = 2
+        ERROR                           = 3
+        TOOL_ENGAGED                    = 4
+        TOOL_DISENGAGED                 = 5
+        OPERATION_CIRCUIT_RESTORED      = 6
+        EDGE_DETECT_SENSOR_ACTIVATED    = 7
+        EDGE_DETECT_SENSOR_DEACTIVATED  = 8
+        DEFECT_SENSOR_ACTIVATED         = 9
 
     class ERROR_CODES(IntEnum):
         """
         An enum of integer codes to identify different types of errors.
         """
-        SUCCESS                      = 100
-        BEYOND_MIN_LIMIT             = 101
-        BEYOND_MAX_LIMIT             = 102
-        UNEXPECTED_OBSTRUCTION       = 103
-        UNEXPECTED_MOVEMENT          = 104
-        INVALID_DESTINATION          = 105
-        INVALID_COMMAND              = 106
-        INVALID_SETTING              = 107
-        MOVEMENT_BUSY                = 108
-        UNDER_VOLTAGE                = 109
-        OVER_VOLTAGE                 = 110
-        OVER_TEMPERATURE             = 111
-        OVER_TEMPERATURE_RATE        = 112
-        OVER_CURRENT                 = 113
-        STOPPED                      = 114
-        MOVED_WHILE_TOOL_CYCLING     = 115
-        TOOL_CYCLED_WHILE_MOVING     = 116
-        INVALID_CALIBRATION_POSITION = 117
+        SUCCESS                       = 100
+        BEYOND_MIN_LIMIT              = 101
+        BEYOND_MAX_LIMIT              = 102
+        UNEXPECTED_OBSTRUCTION        = 103
+        UNEXPECTED_MOVEMENT           = 104
+        INVALID_DESTINATION           = 105
+        INVALID_COMMAND               = 106
+        INVALID_SETTING               = 107
+        MOVEMENT_BUSY                 = 108
+        UNDER_VOLTAGE                 = 109
+        OVER_VOLTAGE                  = 110
+        OVER_TEMPERATURE              = 111
+        OVER_TEMPERATURE_RATE         = 112
+        OVER_CURRENT                  = 113
+        STOPPED                       = 114
+        MOVED_WHILE_TOOL_CYCLING      = 115
+        TOOL_CYCLED_WHILE_MOVING      = 116
+        INVALID_CALIBRATION_POSITION  = 117
+        FULL_AUTO_NOT_ENABLED         = 118
+        IK_NOT_SET_TO_FULL_AUTO       = 119
+        AIR_INPUT_DISABLED            = 120
+        OIL_INPUT_DISABLED            = 121
+        SAW_SPEED_INPUT_DISABLED      = 122
+        LIGHT_CURTAIN_INPUT_DISABLED  = 123
+        GUARD_DOOR_INPUT_DISABLED     = 124
+        IO_PANEL_DISCONNECTED         = 125
 
     class SETTING_NAMES(StrEnum):
         """
@@ -64,14 +77,17 @@ class TSPro:
         STOP             = "stop"
         CALIBRATE        = "calibrate"
         HOME             = "home"
+        CYCLE_TOOL       = "cycle_tool"
 
     __delim_char           = "|"
     __movement_in_progress = False
+    __connected            = False
     __read_buffer: list    = []
     __event_dict           = {}
     __event_dict_mutex     = threading.Lock()
     __socket: socket.socket
     __socket_read_thread: threading.Thread
+    __version: str         = "dev1.1.1.0"
 
     def __init__(self):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -126,6 +142,15 @@ class TSPro:
         while True:
             line = self.__socket.makefile().readline()
             print(f"received message: {line}")
+
+            if line == "":
+                self.__connected = False
+
+                if TSPro.EVENT_CODES.DISCONNECTED in self.__event_dict and callable(self.__event_dict[TSPro.EVENT_CODES.DISCONNECTED]):
+                    self.__event_dict[TSPro.EVENT_CODES.DISCONNECTED]()
+
+                return
+
             segments = self.__parse_line(line)
 
             try:
@@ -219,7 +244,10 @@ class TSPro:
         
         prefix = TSPro.MESSAGE_REQUEST_PREFIXES.GET_SETTING
         self.__send_formatted_message(prefix, setting_name)
-        
+
+    def request_cycle_tool(self):
+        prefix = TSPro.MESSAGE_REQUEST_PREFIXES.CYCLE_TOOL
+        self.__send_formatted_message(prefix)
 
     def connect(self, ip_address: str) -> bool:
         """
@@ -233,7 +261,12 @@ class TSPro:
             self.__socket.connect((ip_address, PORT))
             self.__socket_read_thread = threading.Thread(target = self.__socket_read, args = (self.__socket,))
             self.__socket_read_thread.start()
-            return True
+            self.__connected = True
         except socket.error as error:
             print(error)
-            return False
+            self.__connected = False
+
+        return self.__connected
+
+    def is_connected(self) -> bool:
+        return self.__connected
