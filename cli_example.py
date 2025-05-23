@@ -67,10 +67,14 @@ def parse_command(tsp: TSPro, command: str):
     elif command_id == "get_position":
         tsp.request_current_position()
     elif command_id == "exit":
-        exit()
+        os._exit(1)
     elif command_id == "home":
         tsp.request_home()
     elif command_id == "calibrate":
+        if len(segments) < 2:
+            print("no position value provided")
+            return
+        
         position = segments[1]
 
         try:
@@ -80,6 +84,10 @@ def parse_command(tsp: TSPro, command: str):
             print_help()
             return
     elif command_id == "get_setting":
+        if len(segments) < 2:
+            print("no setting name provided")
+            return
+        
         setting_name = segments[1]
         tsp.request_setting(setting_name)
     elif command_id == "cycle_tool":
