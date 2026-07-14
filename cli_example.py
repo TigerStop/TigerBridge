@@ -7,22 +7,22 @@ import os
 def move_finished_handler():
     print("\nmove finished!")
 
-def received_position_handler(*arg: tuple[str]):
-    position = float(arg[0])
+def received_position_handler(*args):
+    position = float(args[0])
     print(f"\nreceived a position: {position}")
 
-def error_handler(*arg: tuple[str]):
-    error_code = int(arg[0])
+def error_handler(*args):
+    error_code = int(args[0])
     print(f"received an error {TSPro.ERROR_CODES(error_code).name}")
 
-def tool_down_handler():
+def tool_engaged_handler():
     print("tool down")
 
-def tool_up_handler():
+def tool_disengaged_handler():
     print("tool UP")
 
-def get_setting_handler(*arg: tuple[str]):
-    print("received setting:", arg)
+def get_setting_handler(*args):
+    print("received setting data:", args)
 
 def edge_detect_sensor_activated_handler():
     print("edge detect sensor activated")
@@ -36,6 +36,33 @@ def defect_sensor_activated_handler():
 def disconnection_handler():
     print("socket connection lost. exiting...")
     os._exit(1)
+
+def clamps_engaged_handler():
+    print("clamps engaged")
+
+def tool_enabled_handler():
+    print("tool enabled")
+
+def tool_left_rest_handler():
+    print("tool left rest position")
+
+def tool_extended_handler():
+    print("tool at extension")
+
+def tool_left_extension_handler():
+    print("tool left extended position")
+
+def tool_at_rest_handler():
+    print("tool reached rest position")
+
+def clamps_disengaged_handler():
+    print("clamps disengaged")
+
+def tool_cycle_completed_handler():
+    print("tool cycle completed")
+
+def tool_motor_enabled_handler():
+    print("tool motor enabled")
 
 def print_help():
     print("""
@@ -117,15 +144,24 @@ def main():
         else:
             break
 
-    tsp.set_event_hook(TSPro.EVENT_CODES.MOVE_FINISHED, move_finished_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.RECEIVED_POSITION, received_position_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.ERROR, error_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_DISENGAGED, tool_up_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.TOOL_ENGAGED, tool_down_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.EDGE_DETECT_SENSOR_ACTIVATED, edge_detect_sensor_activated_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.EDGE_DETECT_SENSOR_DEACTIVATED, edge_detect_sensor_deactivated_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.DEFECT_SENSOR_ACTIVATED, defect_sensor_activated_handler)
-    tsp.set_event_hook(TSPro.EVENT_CODES.DISCONNECTED, disconnection_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.MOVE_FINISHED, move_finished_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.RECEIVED_POSITION, received_position_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.ERROR, error_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.SIK_TOOL_DISENGAGED, tool_disengaged_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.SIK_TOOL_ENGAGED, tool_engaged_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.EDGE_DETECT_SENSOR_ACTIVATED, edge_detect_sensor_activated_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.EDGE_DETECT_SENSOR_DEACTIVATED, edge_detect_sensor_deactivated_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.DEFECT_SENSOR_ACTIVATED, defect_sensor_activated_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.DISCONNECTED, disconnection_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.CLAMPS_ENGAGED, clamps_engaged_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.TOOL_ENABLED, tool_enabled_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.TOOL_LEFT_REST, tool_left_rest_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.TOOL_EXTENDED, tool_extended_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.TOOL_LEFT_EXTENSION, tool_left_extension_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.TOOL_AT_REST, tool_at_rest_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.CLAMPS_DISENGAGED, clamps_disengaged_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.TOOL_CYCLE_COMPLETED, tool_cycle_completed_handler)
+    tsp.set_event_hook(TSPro.MESSAGE_CODES.TOOL_MOTOR_ENABLED, tool_motor_enabled_handler)
 
     while True:
         parse_command(tsp, input("Enter a command: "))

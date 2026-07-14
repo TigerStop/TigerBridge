@@ -1,6 +1,5 @@
 import socket
 import threading
-import select
 
 from types import FunctionType
 from enum import IntEnum, StrEnum
@@ -12,21 +11,30 @@ class TSPro:
     The interface class for the TigerStop Pro
     """
 
-    class EVENT_CODES(IntEnum):
+    class MESSAGE_CODES(IntEnum):
         """
         An enum of integer codes to identify different types of messages.
         """
-        DISCONNECTED                    = -1
+        DISCONNECTED                    = -1 # added for internal logic, not a message emitted from a TigerStop pro
         MOVE_FINISHED                   = 0
         RECEIVED_SETTING                = 1
         RECEIVED_POSITION               = 2
         ERROR                           = 3
-        TOOL_ENGAGED                    = 4
-        TOOL_DISENGAGED                 = 5
-        OPERATION_CIRCUIT_RESTORED      = 6
+        SIK_TOOL_ENGAGED                = 4
+        SIK_TOOL_DISENGAGED             = 5
+        SAFETY_SENSORS_RESTORED         = 6
         EDGE_DETECT_SENSOR_ACTIVATED    = 7
         EDGE_DETECT_SENSOR_DEACTIVATED  = 8
         DEFECT_SENSOR_ACTIVATED         = 9
+        CLAMPS_ENGAGED                  = 10
+        TOOL_ENABLED                    = 11
+        TOOL_LEFT_REST                  = 12
+        TOOL_EXTENDED                   = 13
+        TOOL_LEFT_EXTENSION             = 14
+        TOOL_AT_REST                    = 15
+        CLAMPS_DISENGAGED               = 16
+        TOOL_CYCLE_COMPLETED            = 17
+        TOOL_MOTOR_ENABLED              = 18
 
     class ERROR_CODES(IntEnum):
         """
@@ -95,7 +103,7 @@ class TSPro:
         self.__socket.setblocking(True)
 
     def __del__(self):
-        if self.__socket != None:
+        if self.__socket is not None:
             self.__socket.close()
 
     def __parse_line(self, line: str) -> list[str]:
@@ -107,7 +115,7 @@ class TSPro:
 
         return line.split(self.__delim_char)
 
-    def __format_message(self, *args: any) -> bytes:
+    def __format_message(self, *args) -> bytes:
         """
         Join all provided arguments into a string using the internal delimiter character and appended with a newline,
         then return this message encoded as a bytes object.
@@ -122,7 +130,7 @@ class TSPro:
         message = self.__delim_char.join(map(str, args)) + "\n"
         return message.encode()
 
-    def __send_formatted_message(self, *args: any):
+    def __send_formatted_message(self, *args):
         """
         Send a message over the socket that has been formatted using __format_message.
         """
@@ -147,8 +155,8 @@ class TSPro:
             if line == "":
                 self.__connected = False
 
-                if TSPro.EVENT_CODES.DISCONNECTED in self.__event_dict and callable(self.__event_dict[TSPro.EVENT_CODES.DISCONNECTED]):
-                    self.__event_dict[TSPro.EVENT_CODES.DISCONNECTED]()
+                if TSPro.MESSAGE_CODES.DISCONNECTED in self.__event_dict and callable(self.__event_dict[TSPro.MESSAGE_CODES.DISCONNECTED]):
+                    self.__event_dict[TSPro.MESSAGE_CODES.DISCONNECTED]()
 
                 return
 
@@ -172,7 +180,7 @@ class TSPro:
         """
 
         # __event_dict is modified in the main thread, separate from when it is accessed in the socket read thread.
-        # this mutex to makes sure this process is thread-safe
+        # this mutex makes sure this process is thread-safe
         self.__event_dict_mutex.acquire()
         self.__event_dict[event_id] = callback
         self.__event_dict_mutex.release()
@@ -183,7 +191,7 @@ class TSPro:
         """
 
         # __event_dict is modified in the main thread, separate from when it is accessed in the socket read thread.
-        # this mutex to makes sure this process is thread-safe
+        # this mutex makes sure this process is thread-safe
         self.__event_dict_mutex.acquire()
         del self.__event_dict[event_id]
         self.__event_dict_mutex.release()
@@ -196,8 +204,7 @@ class TSPro:
         """
 
         prefix = TSPro.MESSAGE_REQUEST_PREFIXES.MOVE_TO_POSITION
-        position = str(position)
-        self.__send_formatted_message(prefix, position)
+        self.__send_formatted_message(prefix, str(position))
 
     def request_stop(self):
         """
