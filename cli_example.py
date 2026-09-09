@@ -64,6 +64,9 @@ def tool_cycle_completed_handler():
 def tool_motor_enabled_handler():
     print("tool motor enabled")
 
+def set_units_success_handler():
+    print("setting set successfully")
+
 def print_help():
     print("""
 Here's a list of valid commands:
@@ -71,6 +74,7 @@ Here's a list of valid commands:
     - stop
     - get_position
     - get_setting
+    - set_units {unit_type}
     - home
     - calibrate {position}
     - cycle_tool
@@ -117,6 +121,12 @@ def parse_command(tsp: TSPro, command: str):
         
         setting_name = segments[1]
         tsp.request_setting(setting_name)
+    elif command_id == "set_units":
+        if len(segments) < 2:
+            print("no unit type provided")
+
+        unit_type = segments[1]
+        tsp.request_set_units(unit_type)
     elif command_id == "cycle_tool":
         tsp.request_cycle_tool()
     else:

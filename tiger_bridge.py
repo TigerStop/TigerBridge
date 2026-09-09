@@ -35,6 +35,7 @@ class TSPro:
         CLAMPS_DISENGAGED               = 16
         TOOL_CYCLE_COMPLETED            = 17
         TOOL_MOTOR_ENABLED              = 18
+        SET_UNITS_SUCCESS               = 19
 
     class ERROR_CODES(IntEnum):
         """
@@ -75,6 +76,7 @@ class TSPro:
 
         MINIMUM_LIMIT = "minlim"
         MAXIMUM_LIMIT = "maxlim"
+        UNITS         = "units"
 
     class MESSAGE_REQUEST_PREFIXES(StrEnum):
         """
@@ -82,6 +84,7 @@ class TSPro:
         """
         MOVE_TO_POSITION = "move_to"
         GET_SETTING      = "get_setting"
+        SET_UNITS        = "set_units"
         GET_POSITION     = "get_position"
         STOP             = "stop"
         CALIBRATE        = "calibrate"
@@ -96,7 +99,7 @@ class TSPro:
     __event_dict_mutex     = threading.Lock()
     __socket: socket.socket
     __socket_read_thread: threading.Thread
-    __version: str         = "dev1.1.1.1"
+    __version: str         = "1.2.2.1"
 
     def __init__(self):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,11 +140,7 @@ class TSPro:
 
         message = self.__format_message(*args)
         print(f"sending message {message}")
-
-        try:
-            self.__socket.send(message)
-        except socket.error:
-            raise
+        self.__socket.send(message)
 
     def __socket_read(self, connection: socket.socket):
         """
@@ -253,6 +252,10 @@ class TSPro:
         prefix = TSPro.MESSAGE_REQUEST_PREFIXES.GET_SETTING
         self.__send_formatted_message(prefix, setting_name)
 
+    def request_set_units(self, unit_type: str):
+        prefix = TSPro.MESSAGE_REQUEST_PREFIXES.SET_UNITS
+        self.__send_formatted_message(prefix, unit_type)
+
     def request_cycle_tool(self):
         prefix = TSPro.MESSAGE_REQUEST_PREFIXES.CYCLE_TOOL
         self.__send_formatted_message(prefix)
@@ -270,7 +273,7 @@ class TSPro:
             self.__socket_read_thread = threading.Thread(target = self.__socket_read, args = (self.__socket,))
             self.__socket_read_thread.start()
             self.__connected = True
-        except socket.error as error:
+        except OSError as error:
             print(error)
             self.__connected = False
 
