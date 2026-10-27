@@ -12,7 +12,7 @@ Messages sent to the controller should begin with a string matching the requeste
 Some functions will require additional parameters, which should be delimited by pipe `|` characters.
 
 |Message|Description|Sent Parameters|
-|---|---|---|---|
+|---|---|---|
 |`stop`| Requests the positioner to stop moving |None|
 |`move_to`| Requests the positioner to move to the provided position value  |Position|
 |`get_setting`| Requests a setting value from the controller  |Setting Name|
@@ -66,8 +66,8 @@ Certain messages will contain additional data, delimited by a pipe `|` character
 |124| Either the guard door sensor was deactivated, or the user attempted a tool cycle while the guard door sensor was inactive.
 |125| The Input/Output panel lost connection.
 |126| The user attempted to perform a tool cycle while a tool cycle was already in progress.
-|127| A disconnect was attempted while the positioner was moving
-|128| A disconnect was attempted while the tool was cycling
+|127| A disconnect was attempted while the positioner was moving.
+|128| A disconnect was attempted while the tool was cycling.
 
 ## Functions
 Areas of this section surrounded in quotes represent string literals, or sequences of bytes to be sent across a TCP connection. Sections of a string literal surrounded in curly braces represent the name of a value that will appear in that section. For example, for a message formatted by the string `2|{position}`, {position} could be a value of 50, and the message string would really be `2|50`. Additionally, `\n` in a string represents the newline character.
