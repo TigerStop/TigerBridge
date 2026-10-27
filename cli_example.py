@@ -78,6 +78,7 @@ Here's a list of valid commands:
     - home
     - calibrate {position}
     - cycle_tool
+    - disconnect
     """)
 
 def parse_command(tsp: TSPro, command: str):
@@ -129,6 +130,8 @@ def parse_command(tsp: TSPro, command: str):
         tsp.request_set_units(unit_type)
     elif command_id == "cycle_tool":
         tsp.request_cycle_tool()
+    elif command_id == "disconnect":
+        tsp.request_disconnect()
     else:
         print_help()
         return

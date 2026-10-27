@@ -68,6 +68,8 @@ class TSPro:
         GUARD_DOOR_INPUT_DISABLED     = 124
         IO_PANEL_DISCONNECTED         = 125
         TOOL_CYCLE_IN_PROGRESS        = 126
+        DISCONNECT_WHILE_MOVING       = 127
+        DISCONNECT_WHILE_CYCLING      = 128
 
     class SETTING_NAMES(StrEnum):
         """
@@ -90,6 +92,7 @@ class TSPro:
         CALIBRATE        = "calibrate"
         HOME             = "home"
         CYCLE_TOOL       = "cycle_tool"
+        DISCONNECT       = "disconnect"
 
     __delim_char           = "|"
     __movement_in_progress = False
@@ -258,6 +261,10 @@ class TSPro:
 
     def request_cycle_tool(self):
         prefix = TSPro.MESSAGE_REQUEST_PREFIXES.CYCLE_TOOL
+        self.__send_formatted_message(prefix)
+
+    def request_disconnect(self):
+        prefix = TSPro.MESSAGE_REQUEST_PREFIXES.DISCONNECT
         self.__send_formatted_message(prefix)
 
     def connect(self, ip_address: str) -> bool:
