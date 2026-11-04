@@ -80,7 +80,7 @@ This function causes the positioner to stop if moving. If the positioner is at r
 
 #### Response
 * Possible Error Codes
-  * 114
+  * 114, 129
 ### Move To Position Function
 Basic movement of the positioner is accomplished through this function. The desired position is passed to the TigerStop in millimeters, which will cause the positioner to move to the provided position, if possible
 #### Request
@@ -91,7 +91,7 @@ Basic movement of the positioner is accomplished through this function. The desi
 #### Response
 * Message Code: 0
 * Possible Error Codes
-  * 101, 102, 103, 105, 108, 109, 110, 111, 112, 113, 114, 115, 116
+  * 101, 102, 103, 105, 108, 109, 110, 111, 112, 113, 114, 115, 116, 129
 ### Get Setting Function
 There are specific settings from the TigerStop, whose values can be read. The setting name determines which setting to get, and both name and value are sent back upon success.
 #### Request
@@ -132,6 +132,8 @@ Provides the current position of the positioner, relative to the tool, in millim
   * Message Code: 2
   * Position: The current position of the positioner (in millimeters)
     * Note: Position will be a float, but will be represented as a string in the response message
+  * Possible Error Codes:
+    * 129
 ### Calibrate Function
 Calibration specifies where the positioner is relative to the tool. The current position becomes the calibrated position, and the end limits are shifted by the difference between the calibrated position and the pre-calibrated position.
 For example, say you have a minimum limit of 0, a maximum limit of 100, and a current position of 5. After calibrating to 0, your minimum limit will be -5, maximum limit will be 95, and current position will be 0.
@@ -145,7 +147,7 @@ For example, say you have a minimum limit of 0, a maximum limit of 100, and a cu
 * Message format: `6\n`
   * Message Code: 6
 * Possible Error Codes:
-  * 117
+  * 117, 129
 ### Home Routine Function
 Sends the positioner to the far end of the beam (relative to the tool), allowing for a consistent reference point for positioning. The controller will respond with message code 0 four consecutive times during a successful home routine, with each one signaling a separate step of the routine. The fourth message in the series indicates a successfully completed routine. 
 #### Request
@@ -155,7 +157,7 @@ Sends the positioner to the far end of the beam (relative to the tool), allowing
 * Message format: `0\n`
   * Message Code: 0
 * Possible Error Codes:
-  * 103, 108, 109, 110, 111, 112, 113, 114, 115, 116
+  * 103, 108, 109, 110, 111, 112, 113, 114, 115, 116, 129
 ### Cycle Tool Function
 Initiates a tool cycle sequence. The controller will respond with a message code for each step of the process until the tool cycle is completed or an error prevents completion. A full tool cycle is as follows:
 __1.__ Clamps engage: Message code 10
@@ -171,7 +173,7 @@ __8.__ Tool cycle complete: Message code 17
 * Parameters: None
 #### Response
 * Possible Error Codes:
-  * 114, 116, 120, 121, 122, 123, 124, 126
+  * 114, 116, 120, 121, 122, 123, 124, 126, 129
 ### Disconnect Function
 * Attempts to close the client’s socket connection. Disconnecting explicitly will maintain motor state (i.e. if the positioner is holding position, after disconnecting, position will still be holding).
 
