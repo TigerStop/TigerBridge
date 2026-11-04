@@ -70,6 +70,7 @@ class TSPro:
         TOOL_CYCLE_IN_PROGRESS        = 126
         DISCONNECT_WHILE_MOVING       = 127
         DISCONNECT_WHILE_CYCLING      = 128
+        AMP_NOT_CONNECTED             = 129
 
     class SETTING_NAMES(StrEnum):
         """
@@ -102,7 +103,7 @@ class TSPro:
     __event_dict_mutex     = threading.Lock()
     __socket: socket.socket
     __socket_read_thread: threading.Thread
-    __version: str         = "1.2.2.1"
+    __version: str         = "1.2.2.2"
 
     def __init__(self):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
