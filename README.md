@@ -68,6 +68,7 @@ Certain messages will contain additional data, delimited by a pipe `|` character
 |126| The user attempted to perform a tool cycle while a tool cycle was already in progress.
 |127| A disconnect was attempted while the positioner was moving.
 |128| A disconnect was attempted while the tool was cycling.
+|129| Attempted to send a command before the amplifier has connected
 
 ## Functions
 Areas of this section surrounded in quotes represent string literals, or sequences of bytes to be sent across a TCP connection. Sections of a string literal surrounded in curly braces represent the name of a value that will appear in that section. For example, for a message formatted by the string `2|{position}`, {position} could be a value of 50, and the message string would really be `2|50`. Additionally, `\n` in a string represents the newline character.
